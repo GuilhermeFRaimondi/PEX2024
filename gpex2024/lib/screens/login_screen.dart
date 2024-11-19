@@ -1,16 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'cadastro_screen.dart';
 import 'home_screen.dart';
-
-void main() => runApp(LoginApp());
-
-class LoginApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: LoginScreen(),
-    );
-  }
-}
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -21,35 +12,33 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  void login() {
-    final email = emailController.text;
-    final password = passwordController.text;
-/* estrutura condicional simples para criar uma situação de login
-         caso não seja necessário criar um banco de dados para validar o login
-          podemos deixar o email como catolica@gmail.com e a senha como PEX*/
-    if (email == 'a' && password == 'a') {
-      Navigator.push(
+
+  Future<void> login() async {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    try {
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => HomeScreen()),
       );
-    } else {
+    } on FirebaseAuthException catch (e) {
+      String errorMessage = 'Erro ao realizar o login. Verifique suas credenciais.';
+      if (e.code == 'user-not-found') {
+        errorMessage = 'Usuário não encontrado.';
+      } else if (e.code == 'wrong-password') {
+        errorMessage = 'Senha incorreta.';
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Container(
-            height: 25,
-            child: Center(
-              child: Text(
-                'Login inválido',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
+          content: Text(errorMessage),
           backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.fixed,
         ),
       );
     }
@@ -72,7 +61,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   fontWeight: FontWeight.bold,
                   color: Colors.green,
                 ),
-                textAlign: TextAlign.center,
               ),
             ),
           ),
@@ -80,13 +68,10 @@ class _LoginScreenState extends State<LoginScreen> {
           Center(
             child: Text(
               'Already registered? Log in here',
-/* Essa parte eu só copiei do wireframe não entendi bem a função mas caso tenha é só adicionar,
-              ou caso não tenha uso podemos excluir.*/
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.grey,
               ),
-              textAlign: TextAlign.center,
             ),
           ),
           Expanded(
@@ -99,7 +84,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     fontSize: 18,
                     color: Colors.black,
                   ),
-                  textAlign: TextAlign.center,
                 ),
                 SizedBox(height: 10),
                 Padding(
@@ -121,7 +105,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     fontSize: 18,
                     color: Colors.black,
                   ),
-                  textAlign: TextAlign.center,
                 ),
                 SizedBox(height: 10),
                 Padding(
@@ -141,8 +124,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
           Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
+            padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
             child: SizedBox(
               width: double.infinity,
               height: 40,
@@ -166,11 +148,13 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           TextButton(
             onPressed: () {
-/* Deixei essa função caso queiram adicionar um sistema de recuperação de senha
-               Mas acho que não é necessário então caso não achem pertinente é só remover essa parte */
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => CadastroScreen()),
+              );
             },
             child: Text(
-              'Recuperar Senha',
+              'Criar Conta',
               style: TextStyle(color: Colors.green),
             ),
           ),
